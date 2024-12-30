@@ -119,12 +119,14 @@ const modalLookup = {
             `);
         }
 
-        $(document).on('click', '.page-link', function(e){
-            e.preventDefault();
-            let ajaxUrl = $(this).attr('href');
-            let $modal = $(this).closest('.modal');
-            $modal.data('ajax-url', ajaxUrl);
-            modalLookup.getData($modal);
+        // Event delegation for pagination links
+        $pagination.off('click', '.page-link'); // Remove previous event handlers
+        $pagination.on('click', '.page-link', function(e) {
+            e.preventDefault(); // Prevent default anchor behavior
+            let ajaxUrl = $(this).attr('href'); // Get the URL from the clicked link
+            let $modal = $(this).closest('.modal'); // Find the closest modal
+            $modal.data('ajax-url', ajaxUrl); // Update the modal's ajax-url
+            modalLookup.getData($modal); // Fetch new data
         });
     }
 };
