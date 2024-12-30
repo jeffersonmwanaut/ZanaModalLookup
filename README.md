@@ -17,24 +17,24 @@ Zana Modal Lookup is a JavaScript module that handles the retrieval and display 
 
 ## Key Components
 
-1. Data Mapping:
+1. **Data Mapping**:
 
 - The `dataMapping` object imported from `modalLookupDataMapping.js` is used to define how the data should be structured and displayed in the modal. It includes information about the items to be displayed and pagination details.
 
-2. getData Function:
+2. **getData Function**:
 
 - This function is responsible for fetching data from a specified URL (defined in the modal's data attributes) and populating a table within the modal.
 - It makes an AJAX GET request to the `ajaxUrl` and expects a JSON response.
 - Upon a successful response, it clears any existing table data and populates the table with new data based on the mapping provided.
 - It also formats date fields and handles links within the table cells.
 
-3. createPagination Function:
+3. **createPagination Function**:
 
 - This function generates pagination controls based on the total number of pages returned in the AJAX response.
 - It constructs the pagination links and appends them to the pagination element in the modal.
 - It also handles the click events on pagination links to fetch the corresponding page of data.
 
-4. Event Handling:
+4. **Event Handling**:
 
 - The code includes an event listener for pagination link clicks, which prevents the default action and instead fetches the new data for the selected page.
 
