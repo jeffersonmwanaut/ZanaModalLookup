@@ -1,5 +1,25 @@
 import {dataMapping} from './modalLookupDataMapping.js';
 
+const updateAjaxUrl = (ajaxUrl, searchParams) => {
+    // Create a URL object
+    const url = new URL(ajaxUrl);
+
+    // Create a URLSearchParams object from the existing query string
+    const params = new URLSearchParams(url.search);
+
+    // Append new search parameters
+    for (const key in searchParams) {
+        if (searchParams.hasOwnProperty(key)) {
+            params.set(key, searchParams[key]); // Use set to update or add new parameters
+        }
+    }
+
+    // Update the URL with the new search parameters
+    url.search = params.toString();
+
+    return url.toString(); // Return the updated URL as a string
+};
+
 const modalLookup = {
     getData: function($modal) {
         let ajaxUrl = $modal.data('ajax-url');
@@ -10,13 +30,26 @@ const modalLookup = {
 
         let tableDataMapping = dataMapping[tableName];
 
+        // Collect all search terms from input fields
+        const searchParams = {};
+        $modal.find('input[type="search"]').each(function() {
+            const inputName = $(this).attr('name');
+            const inputValue = $(this).val();
+            if (inputValue) {
+                searchParams[inputName] = inputValue;
+            }
+        });
+
+        // Update the AJAX URL with search parameters
+        ajaxUrl = updateAjaxUrl(ajaxUrl, searchParams);
+
         $.ajax({
             type: 'GET',
             url: ajaxUrl,
             dataType: 'json',
             success: function(response) {
-                const data = response.data;
-                const items = data[tableDataMapping.items];
+                const data = response.data; // Adjust this based on your API response structure
+                const items = data[tableDataMapping.items]; // Use the mapping to get the items
                 const totalPages = data[tableDataMapping.pagination].total_pages;
 
                 // Clear existing table data
@@ -68,15 +101,28 @@ const modalLookup = {
                         }
                         row.append(cell);
                     });
+                    //$(`#${tableId} tbody`).append(row);
                     $tbody.append(row);
                 });
                 
                 // Create pagination
                 modalLookup.createPagination($pagination, totalPages, ajaxUrl);
+
+                // Initialize filtering
+                modalLookup.filterTable($table);
             },
             error: function(xhr, status, error) {
                 console.error('Error fetching data:', error);
+                //console.error('Response text:', xhr.responseText);
             }
+        });
+    },
+    filterTable: function($table) {
+        const $inputs = $table.find('input[type="search"]');
+        $inputs.off('input'); // Remove previous event handlers
+        $inputs.on('input', function() {
+            const $modal = $table.closest('.modal'); // Find the closest modal
+            modalLookup.getData($modal); // Fetch new data with all search terms
         });
     },
     createPagination: function($pagination, totalPages, urlString) {
@@ -91,20 +137,62 @@ const modalLookup = {
         const cleanUrl = urlString.split("?")[0];
         $pagination.empty(); // Clear existing pagination controls
 
+        // Add "First" link
         if (currentPage > 1) {
             $pagination.append(`
                 <li class="page-item">
-                    <a class="page-link" href="${cleanUrl}?page=${currentPage - 1}" aria-label="Previous">
+                    <a class="page-link" href="${cleanUrl}?page=1" aria-label="First">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
             `);
         }
 
-        for (let i = 1; i <= totalPages; i++) {
+        if (currentPage > 1) {
+            $pagination.append(`
+                <li class="page-item">
+                    <a class="page-link" href="${cleanUrl}?page=${currentPage - 1}" aria-label="Previous">
+                        <span aria-hidden="true">&lt;</span>
+                    </a>
+                </li>
+            `);
+        }
+
+        // Display page numbers with ellipsis
+        const maxVisiblePages = 5; // Maximum number of page links to show
+        const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (startPage > 1) {
+            $pagination.append(`
+                <li class="page-item">
+                    <a class="page-link" href="${cleanUrl}?page=1">1</a>
+                </li>
+            `);
+            if (startPage > 2) {
+                $pagination.append(`
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                `);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             $pagination.append(`
                 <li class="page-item ${i === currentPage ? 'active' : ''}">
                     <a class="page-link" href="${cleanUrl}?page=${i}">${i}</a>
+                </li>
+            `);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                $pagination.append(`
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                `);
+            }
+            $pagination.append(`
+                <li class="page-item">
+                    <a class="page-link" href="${cleanUrl}?page=${totalPages}">${totalPages}</a>
                 </li>
             `);
         }
@@ -113,6 +201,17 @@ const modalLookup = {
             $pagination.append(`
                 <li class="page-item">
                     <a class="page-link" href="${cleanUrl}?page=${currentPage + 1}" aria-label="Next">
+                        <span aria-hidden="true">&gt;</span>
+                    </a>
+                </li>
+            `);
+        }
+
+        // Add "Last" link
+        if (currentPage < totalPages) {
+            $pagination.append(`
+                <li class="page-item">
+                    <a class="page-link" href="${cleanUrl}?page=${totalPages}" aria-label="Last">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
