@@ -8,6 +8,7 @@ Zana Modal Lookup is a JavaScript module that handles the retrieval and display 
 - [Key Components](#Key-Components)
 - [Code Functionality](#Code-Functionality)
 - [Example Usage](#Example-Usage)
+- [Creators](#creators)
 
 ## Technical requirements
 
@@ -115,3 +116,11 @@ $(document).ready(function() {
 3. **Dynamic Data Fetching**: When the modal is shown, the getData function is called, which fetches data from the specified URL and populates the table accordingly.
 
 This setup allows for a dynamic and interactive modal that can display data fetched from an API, complete with pagination and search functionality.
+
+
+## Creators
+
+**Jefferson Mwanaut**
+
+- <https://github.com/jeffersonmwanaut>
+- <https://www.linkedin.com/in/jeffersonmwanaut>
